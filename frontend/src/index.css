@@ -1,1 +1,85 @@
 @import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", "Cascadia Code", "Consolas", monospace;
+
+  --color-store-bg: #f7f5f0;
+  --color-store-card: #ffffff;
+  --color-store-text: #1c1a18;
+  --color-store-accent: #c73e3e;
+  --color-store-muted: #9c928a;
+
+  --color-register-bg: #131212;
+  --color-register-surface: #1f1d1c;
+  --color-register-text: #e8e3dd;
+  --color-register-muted: #6b6460;
+  --color-register-green: #b8f2b8;
+  --color-register-green-dim: #1f3a1f;
+
+  --color-accent-blue: #3c78d2;
+  --color-danger: #d64545;
+}
+
+@utility scrollbar-thin {
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: var(--color-store-muted);
+    border-radius: 99px;
+  }
+}
+
+@utility register-scroll {
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: var(--color-register-muted);
+    border-radius: 99px;
+  }
+}
+
+@keyframes register-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.85; }
+}
+
+@keyframes scan-flash {
+  0% { transform: scale(0.5); opacity: 0; }
+  50% { transform: scale(1.2); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@utility register-display {
+  background: #0a0a0a;
+  border-radius: 0.5rem;
+  padding: 0.75rem 1rem;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.6);
+}
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .ticket-content,
+  .ticket-content * {
+    visibility: visible;
+  }
+  .ticket-content {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 80mm;
+    padding: 0;
+    margin: 0;
+    font-size: 10px;
+  }
+}

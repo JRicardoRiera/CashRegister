@@ -2,7 +2,9 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
 import PosPage from './pages/PosPage'
+import AdminPage from './pages/AdminPage'
 import ProtectedRoute from './components/ProtectedRoute'
+import AdminRoute from './components/AdminRoute'
 
 export default function App() {
   return (
@@ -15,6 +17,16 @@ export default function App() {
           element={
             <ProtectedRoute>
               <PosPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/*"
+          element={
+            <ProtectedRoute>
+              <AdminRoute>
+                <AdminPage />
+              </AdminRoute>
             </ProtectedRoute>
           }
         />

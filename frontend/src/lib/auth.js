@@ -1,12 +1,22 @@
 import { supabase } from './supabase'
 
+const API = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000'
+
 export async function signUp(email, password, nombreCompleto) {
-  const { data, error } = await supabase.auth.signUp({
-    email,
-    password,
-    options: { data: { full_name: nombreCompleto } },
-  })
-  return { data, error }
+  try {
+    const res = await fetch(`${API}/api/v1/auth/signup`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password, nombre_completo: nombreCompleto }),
+    })
+    if (!res.ok) {
+      const err = await res.json()
+      return { error: { message: err.detail || 'Error al crear cuenta' } }
+    }
+    return { data: await res.json(), error: null }
+  } catch {
+    return { error: { message: 'No se pudo conectar con el servidor' } }
+  }
 }
 
 export async function signIn(email, password) {

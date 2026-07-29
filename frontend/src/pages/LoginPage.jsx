@@ -25,39 +25,44 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+    <div className="min-h-screen flex items-center justify-center p-4" style={{ background: '#131212' }}>
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Web Cash Register</h1>
-          <p className="text-gray-500 mt-2">Inicia sesión para continuar</p>
+          <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4" style={{ background: '#b8f2b8' }}>
+            <span className="font-bold text-xl font-[family-name:var(--font-mono)]" style={{ color: '#131212' }}>CR</span>
+          </div>
+          <h1 className="text-2xl font-bold text-[#e8e3dd]">CashRegister</h1>
+          <p className="text-[#6b6460] mt-1.5 text-sm">Inicia sesión para continuar</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="p-6 space-y-4" style={{ background: '#1a1817' }}>
           {error && (
-            <div className="bg-red-50 text-red-700 text-sm rounded-lg p-3 border border-red-200">
+            <div className="text-sm px-4 py-3 font-medium" style={{ background: '#2d1515', color: '#ff6b6b' }}>
               {error}
             </div>
           )}
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+            <label className="block text-xs font-medium text-[#6b6460] mb-1.5 uppercase tracking-wider">Email</label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2.5 text-sm rounded-lg focus:outline-none transition-colors"
+              style={{ background: '#0f0f0f', color: '#e8e3dd', border: '2px solid #2a2726' }}
               placeholder="tu@correo.com"
               required
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Contraseña</label>
+            <label className="block text-xs font-medium text-[#6b6460] mb-1.5 uppercase tracking-wider">Contraseña</label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2.5 text-sm rounded-lg focus:outline-none transition-colors"
+              style={{ background: '#0f0f0f', color: '#e8e3dd', border: '2px solid #2a2726' }}
               placeholder="••••••••"
               required
             />
@@ -66,14 +71,15 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 text-white py-2 rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="w-full py-2.5 rounded-lg font-bold text-sm transition-colors tracking-wide"
+            style={{ background: '#b8f2b8', color: '#131212' }}
           >
             {loading ? 'Entrando...' : 'Iniciar sesión'}
           </button>
 
-          <p className="text-center text-sm text-gray-500">
+          <p className="text-center text-sm text-[#6b6460]">
             ¿No tienes cuenta?{' '}
-            <Link to="/register" className="text-blue-600 hover:underline">Crear cuenta</Link>
+            <Link to="/register" className="font-medium" style={{ color: '#b8f2b8' }}>Crear cuenta</Link>
           </p>
         </form>
       </div>

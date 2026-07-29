@@ -1,0 +1,17 @@
+{
+    "productos":  {
+                      "Leche Lala 1L":  6,
+                      "Fanta Naranja 600ml":  3,
+                      "Sabritas Adobadas 160g":  5,
+                      "Cloralex 1L":  8,
+                      "Coca-Cola 600ml":  2,
+                      "Queso Panela 200g":  7,
+                      "Sabritas Original 160g":  4
+                  },
+    "categorias":  {
+                       "Bebidas":  null,
+                       "Limpieza":  4,
+                       "Alimentos":  3,
+                       "Lácteos":  3
+                   }
+}

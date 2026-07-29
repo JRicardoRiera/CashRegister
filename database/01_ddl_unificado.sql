@@ -253,11 +253,11 @@ BEGIN
   INSERT INTO public.perfiles (id, nombre_completo, email, rol)
   VALUES (
     NEW.id,
-    COALESCE(NEW.raw_user_meta_data ->> 'full_name', split_part(NEW.email, '@', 1)),
+    split_part(NEW.email, '@', 1),
     NEW.email,
     CASE WHEN (SELECT COUNT(*) FROM public.perfiles) = 0
-         THEN 'administrador'
-         ELSE 'cajero'
+         THEN 'administrador'::rol_usuario
+         ELSE 'cajero'::rol_usuario
     END
   );
   RETURN NEW;

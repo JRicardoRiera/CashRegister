@@ -40,16 +40,20 @@ export default function RegisterPage() {
 
   if (success) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="w-full max-w-sm bg-white rounded-xl shadow-sm border border-gray-200 p-6 text-center">
-          <div className="text-green-500 text-5xl mb-4">✓</div>
-          <h2 className="text-xl font-bold text-gray-900 mb-2">Cuenta creada</h2>
-          <p className="text-gray-500 text-sm mb-4">
-            Revisa tu correo para confirmar la cuenta (si la confirmación está habilitada). Luego inicia sesión.
+      <div className="min-h-screen flex items-center justify-center p-4" style={{ background: '#131212' }}>
+        <div className="w-full max-w-sm p-6 text-center" style={{ background: '#1a1817' }}>
+          <svg className="w-12 h-12 mx-auto mb-4" viewBox="0 0 24 24" fill="none" stroke="#b8f2b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+            <polyline points="22 4 12 14.01 9 11.01" />
+          </svg>
+          <h2 className="text-xl font-bold text-[#e8e3dd] mb-2">Cuenta creada</h2>
+          <p className="text-[#6b6460] text-sm mb-6">
+            Ahora puedes iniciar sesión con tu correo y contraseña.
           </p>
           <button
             onClick={() => navigate('/login')}
-            className="w-full bg-blue-600 text-white py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors"
+            className="w-full py-2.5 rounded-lg font-bold text-sm transition-colors tracking-wide"
+            style={{ background: '#b8f2b8', color: '#131212' }}
           >
             Ir a iniciar sesión
           </button>
@@ -59,63 +63,70 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+    <div className="min-h-screen flex items-center justify-center p-4" style={{ background: '#131212' }}>
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Crear cuenta</h1>
-          <p className="text-gray-500 mt-2">Regístrate para usar Web Cash Register</p>
+          <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4" style={{ background: '#b8f2b8' }}>
+            <span className="font-bold text-xl font-[family-name:var(--font-mono)]" style={{ color: '#131212' }}>CR</span>
+          </div>
+          <h1 className="text-2xl font-bold text-[#e8e3dd]">Crear cuenta</h1>
+          <p className="text-[#6b6460] mt-1.5 text-sm">Regístrate para usar CashRegister</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="p-6 space-y-4" style={{ background: '#1a1817' }}>
           {error && (
-            <div className="bg-red-50 text-red-700 text-sm rounded-lg p-3 border border-red-200">
+            <div className="text-sm px-4 py-3 font-medium" style={{ background: '#2d1515', color: '#ff6b6b' }}>
               {error}
             </div>
           )}
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Nombre completo</label>
+            <label className="block text-xs font-medium text-[#6b6460] mb-1.5 uppercase tracking-wider">Nombre completo</label>
             <input
               type="text"
               value={nombre}
               onChange={(e) => setNombre(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2.5 text-sm rounded-lg focus:outline-none transition-colors"
+              style={{ background: '#0f0f0f', color: '#e8e3dd', border: '2px solid #2a2726' }}
               placeholder="Tu nombre"
               required
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+            <label className="block text-xs font-medium text-[#6b6460] mb-1.5 uppercase tracking-wider">Email</label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2.5 text-sm rounded-lg focus:outline-none transition-colors"
+              style={{ background: '#0f0f0f', color: '#e8e3dd', border: '2px solid #2a2726' }}
               placeholder="tu@correo.com"
               required
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Contraseña</label>
+            <label className="block text-xs font-medium text-[#6b6460] mb-1.5 uppercase tracking-wider">Contraseña</label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2.5 text-sm rounded-lg focus:outline-none transition-colors"
+              style={{ background: '#0f0f0f', color: '#e8e3dd', border: '2px solid #2a2726' }}
               placeholder="Mínimo 6 caracteres"
               required
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Confirmar contraseña</label>
+            <label className="block text-xs font-medium text-[#6b6460] mb-1.5 uppercase tracking-wider">Confirmar contraseña</label>
             <input
               type="password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2.5 text-sm rounded-lg focus:outline-none transition-colors"
+              style={{ background: '#0f0f0f', color: '#e8e3dd', border: '2px solid #2a2726' }}
               placeholder="Repite la contraseña"
               required
             />
@@ -124,14 +135,15 @@ export default function RegisterPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 text-white py-2 rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="w-full py-2.5 rounded-lg font-bold text-sm transition-colors tracking-wide"
+            style={{ background: '#b8f2b8', color: '#131212' }}
           >
             {loading ? 'Creando cuenta...' : 'Crear cuenta'}
           </button>
 
-          <p className="text-center text-sm text-gray-500">
+          <p className="text-center text-sm text-[#6b6460]">
             ¿Ya tienes cuenta?{' '}
-            <Link to="/login" className="text-blue-600 hover:underline">Iniciar sesión</Link>
+            <Link to="/login" className="font-medium" style={{ color: '#b8f2b8' }}>Iniciar sesión</Link>
           </p>
         </form>
       </div>
