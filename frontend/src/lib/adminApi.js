@@ -51,6 +51,12 @@ export const ventasApi = {
   get: (id) => request('GET', `/api/v1/ventas/${id}`),
 }
 
+export const usuariosApi = {
+  list: () => request('GET', '/api/v1/admin/usuarios'),
+  get: (id) => request('GET', `/api/v1/admin/usuarios/${id}`),
+  update: (id, data) => request('PUT', `/api/v1/admin/usuarios/${id}`, data),
+}
+
 export const dashboardApi = {
   get: () => request('GET', '/api/v1/admin/dashboard'),
 }

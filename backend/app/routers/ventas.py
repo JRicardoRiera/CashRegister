@@ -7,7 +7,7 @@ from app.services.supabase import from_table, handle_supabase_error
 
 router = APIRouter(prefix="/api/v1/ventas", tags=["ventas"])
 
-IVA = Decimal("0.16")
+IVA = Decimal("0.15")
 
 
 def _build_venta_response(venta, usuario_nombre, detalles, producto_map):

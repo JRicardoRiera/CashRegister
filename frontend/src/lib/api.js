@@ -35,8 +35,11 @@ export async function procesarVenta(body) {
     body: JSON.stringify(body),
   })
   if (!res.ok) {
-    const err = await res.json()
-    throw new Error(err.detail || 'Error al procesar venta')
+    const err = await res.json().catch(() => ({}))
+    const msg = Array.isArray(err.detail)
+      ? err.detail.map((d) => d.msg).join('; ')
+      : err.detail || 'Error al procesar venta'
+    throw new Error(msg)
   }
   return res.json()
 }

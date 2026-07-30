@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import useCartStore from '../store/cartStore'
+import { useState, useEffect } from 'react'
+import useCartStore, { selectTotal } from '../store/cartStore'
 import { procesarVenta } from '../lib/api'
 import Ticket from './Ticket'
 
@@ -46,8 +46,7 @@ function CheckIcon() {
 }
 
 export default function CheckoutModal({ onClose }) {
-  const items = useCartStore((s) => s.items)
-  const total = useCartStore((s) => s.total)
+  const total = useCartStore(selectTotal)
   const clear = useCartStore((s) => s.clear)
 
   const [metodo, setMetodo] = useState('efectivo')
@@ -59,8 +58,18 @@ export default function CheckoutModal({ onClose }) {
 
   const cambio = Math.max(0, parseFloat(montoRecibido || 0) - total)
 
+  useEffect(() => {
+    if (metodo === 'efectivo' && Number(montoRecibido) < total) {
+      setMontoRecibido(total.toFixed(2))
+    }
+  }, [total, metodo, montoRecibido])
+
   async function handleCobrar() {
-    if (metodo === 'efectivo' && parseFloat(montoRecibido) < total) {
+    const state = useCartStore.getState()
+    const currentTotal = selectTotal(state)
+    const currentItems = state.items
+
+    if (metodo === 'efectivo' && parseFloat(montoRecibido) < currentTotal) {
       setError('El monto recibido es insuficiente')
       return
     }
@@ -70,12 +79,12 @@ export default function CheckoutModal({ onClose }) {
 
     try {
       const body = {
-        items: items.map((i) => ({
+        items: currentItems.map((i) => ({
           producto_id: i.id,
           cantidad: i.cantidad,
         })),
         metodo_pago: metodo,
-        monto_recibido: metodo === 'efectivo' ? parseFloat(montoRecibido) : total,
+        monto_recibido: metodo === 'efectivo' ? parseFloat(montoRecibido) : currentTotal,
       }
 
       const venta = await procesarVenta(body)

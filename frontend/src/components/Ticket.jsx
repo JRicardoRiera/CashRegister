@@ -46,7 +46,7 @@ export default function Ticket({ venta, onClose }) {
               <span className="font-[family-name:var(--font-mono)] tabular-nums">${Number(venta.subtotal).toFixed(2)}</span>
             </div>
             <div className="flex justify-between text-[#6b6460]">
-              <span>IVA (16%)</span>
+              <span>IVA (15%)</span>
               <span className="font-[family-name:var(--font-mono)] tabular-nums">${Number(venta.impuestos).toFixed(2)}</span>
             </div>
             <div className="flex justify-between text-base font-bold border-t border-[#d4cdc6] pt-2 text-[#1c1a18]">

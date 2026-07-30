@@ -1,13 +1,13 @@
-import useCartStore from '../store/cartStore'
+import useCartStore, { selectSubtotal, selectImpuestos, selectTotal, selectCount } from '../store/cartStore'
 import CartItem from './CartItem'
 
 export default function CartPanel({ onCheckout }) {
   const items = useCartStore((s) => s.items)
   const clear = useCartStore((s) => s.clear)
-  const subtotal = useCartStore((s) => s.subtotal)
-  const impuestos = useCartStore((s) => s.impuestos)
-  const total = useCartStore((s) => s.total)
-  const count = useCartStore((s) => s.count)
+  const subtotal = useCartStore(selectSubtotal)
+  const impuestos = useCartStore(selectImpuestos)
+  const total = useCartStore(selectTotal)
+  const count = useCartStore(selectCount)
 
   return (
     <div className="h-full flex flex-col">
@@ -56,7 +56,7 @@ export default function CartPanel({ onCheckout }) {
             <span className="font-[family-name:var(--font-mono)] tabular-nums">${subtotal.toFixed(2)}</span>
           </div>
           <div className="flex justify-between text-sm text-[#6b6460]">
-            <span>IVA (16%)</span>
+            <span>IVA (15%)</span>
             <span className="font-[family-name:var(--font-mono)] tabular-nums">${impuestos.toFixed(2)}</span>
           </div>
           <div className="register-display flex justify-between items-center mt-3 mb-1">

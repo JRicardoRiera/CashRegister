@@ -159,7 +159,7 @@ export default function VentasPage() {
           </table>
           <div className="border-t border-[#2a2726] mt-2 pt-2 text-xs text-[#6b6460] space-y-0.5">
             <div className="flex justify-between"><span>Subtotal</span><span className="font-[family-name:var(--font-mono)]">${Number(selected.subtotal).toFixed(2)}</span></div>
-            <div className="flex justify-between"><span>IVA (16%)</span><span className="font-[family-name:var(--font-mono)]">${Number(selected.impuestos).toFixed(2)}</span></div>
+            <div className="flex justify-between"><span>IVA (15%)</span><span className="font-[family-name:var(--font-mono)]">${Number(selected.impuestos).toFixed(2)}</span></div>
             <div className="flex justify-between font-bold text-[#b8f2b8]"><span>Total</span><span className="font-[family-name:var(--font-mono)]">${Number(selected.total).toFixed(2)}</span></div>
           </div>
         </div>

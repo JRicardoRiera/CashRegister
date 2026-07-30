@@ -30,3 +30,19 @@ class SignupRequest(BaseModel):
 class FixProfilesResponse(BaseModel):
     creados: int
     detalles: list[str]
+
+
+class UsuarioUpdate(BaseModel):
+    nombre_completo: Optional[str] = None
+    rol: Optional[str] = None
+    activo: Optional[bool] = None
+
+
+class UsuarioAdminResponse(BaseModel):
+    id: str
+    nombre_completo: str
+    email: str
+    rol: str
+    activo: bool
+    creado_en: Optional[str] = None
+    actualizado_en: Optional[str] = None

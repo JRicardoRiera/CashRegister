@@ -1,8 +1,9 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, status
 from datetime import datetime, timezone, timedelta
 from decimal import Decimal
 from app.auth import require_admin
 from app.services.supabase import from_table, handle_supabase_error
+from app.models.auth_schemas import UsuarioUpdate, UsuarioAdminResponse
 from app.models.dashboard import (
     DashboardResponse,
     HoyStats,
@@ -149,3 +150,48 @@ def dashboard(admin=Depends(require_admin)):
         ultimas_ventas=ultimas,
         top_productos=top5,
     )
+
+
+def _get_perfil_or_404(user_id: str) -> dict:
+    try:
+        resp = from_table("perfiles").select("*").eq("id", user_id).single().execute()
+        return resp.data
+    except Exception:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Usuario no encontrado")
+
+
+@router.get("/usuarios", response_model=list[UsuarioAdminResponse])
+def listar_usuarios(admin=Depends(require_admin)):
+    try:
+        data = from_table("perfiles").select("*").order("creado_en", desc=True).execute()
+        return data.data
+    except Exception as e:
+        handle_supabase_error(e, "Error al listar usuarios")
+
+
+@router.get("/usuarios/{user_id}", response_model=UsuarioAdminResponse)
+def obtener_usuario(user_id: str, admin=Depends(require_admin)):
+    return _get_perfil_or_404(user_id)
+
+
+@router.put("/usuarios/{user_id}", response_model=UsuarioAdminResponse)
+def actualizar_usuario(
+    user_id: str,
+    body: UsuarioUpdate,
+    admin=Depends(require_admin),
+):
+    update_data = {k: v for k, v in body.model_dump(exclude_none=True).items()}
+
+    if not update_data:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No hay campos para actualizar")
+
+    if "rol" in update_data and update_data["rol"] not in ("administrador", "cajero"):
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Rol inválido: debe ser 'administrador' o 'cajero'")
+
+    _get_perfil_or_404(user_id)
+
+    try:
+        data = from_table("perfiles").update(update_data).eq("id", user_id).execute()
+        return data.data[0]
+    except Exception as e:
+        handle_supabase_error(e, "Error al actualizar usuario")
