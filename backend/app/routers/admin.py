@@ -3,11 +3,19 @@ from datetime import datetime, timezone, timedelta
 from decimal import Decimal
 from app.auth import require_admin
 from app.services.supabase import from_table, handle_supabase_error
+from app.models.dashboard import (
+    DashboardResponse,
+    HoyStats,
+    DiaSemana,
+    ProductoBajoStock,
+    UltimaVenta,
+    TopProducto,
+)
 
 router = APIRouter(prefix="/api/v1/admin", tags=["admin"])
 
 
-@router.get("/dashboard")
+@router.get("/dashboard", response_model=DashboardResponse)
 def dashboard(admin=Depends(require_admin)):
     today = datetime.now(timezone.utc).date()
     today_start = today.isoformat()
@@ -44,10 +52,7 @@ def dashboard(admin=Depends(require_admin)):
         except Exception as e:
             handle_supabase_error(e, "Error al obtener ventas del día")
         total_dia = sum(Decimal(str(v["total"])) for v in ventas_dia.data)
-        semana.append({
-            "fecha": d.isoformat(),
-            "total": float(total_dia),
-        })
+        semana.append(DiaSemana(fecha=d.isoformat(), total=float(total_dia)))
 
     try:
         todos_productos = (
@@ -60,13 +65,13 @@ def dashboard(admin=Depends(require_admin)):
         handle_supabase_error(e, "Error al obtener productos")
 
     bajos = [
-        {
-            "id": p["id"],
-            "nombre": p["nombre"],
-            "codigo_barras": p.get("codigo_barras", ""),
-            "stock_actual": p["stock_actual"],
-            "stock_minimo": p["stock_minimo"],
-        }
+        ProductoBajoStock(
+            id=p["id"],
+            nombre=p["nombre"],
+            codigo_barras=p.get("codigo_barras", ""),
+            stock_actual=p["stock_actual"],
+            stock_minimo=p["stock_minimo"],
+        )
         for p in todos_productos.data
         if p["stock_actual"] <= p["stock_minimo"]
     ]
@@ -82,25 +87,19 @@ def dashboard(admin=Depends(require_admin)):
     except Exception as e:
         handle_supabase_error(e, "Error al obtener últimas ventas")
 
-    ultimas = []
-    for v in ultimas_ventas.data:
-        try:
-            usuario = (
-                from_table("perfiles")
-                .select("nombre_completo")
-                .eq("id", v["usuario_id"])
-                .single()
-                .execute()
-            )
-            nombre = usuario.data["nombre_completo"] if usuario else "Desconocido"
-        except Exception:
-            nombre = "Desconocido"
-        ultimas.append({
-            "id": v["id"],
-            "total": v["total"],
-            "fecha_hora": v["fecha_hora"],
-            "usuario_nombre": nombre,
-        })
+    user_ids = list({v["usuario_id"] for v in ultimas_ventas.data})
+    perfiles = from_table("perfiles").select("id,nombre_completo").in_("id", user_ids).execute().data
+    perfil_map = {p["id"]: p["nombre_completo"] for p in perfiles}
+
+    ultimas = [
+        UltimaVenta(
+            id=v["id"],
+            total=v["total"],
+            fecha_hora=v["fecha_hora"],
+            usuario_nombre=perfil_map.get(v["usuario_id"], "Desconocido"),
+        )
+        for v in ultimas_ventas.data
+    ]
 
     try:
         todos_detalles = (
@@ -117,27 +116,36 @@ def dashboard(admin=Depends(require_admin)):
         agg[pid] = agg.get(pid, 0) + d["cantidad"]
 
     sorted_prods = sorted(agg.items(), key=lambda x: x[1], reverse=True)[:5]
-    top5 = []
-    for pid, total_vendido in sorted_prods:
-        try:
-            p = from_table("productos").select("nombre").eq("id", pid).single().execute().data
-            nombre = p["nombre"]
-        except Exception:
-            nombre = f"#{pid}"
-        top5.append({
-            "producto_id": pid,
-            "nombre": nombre,
-            "total_vendido": total_vendido,
-        })
+    top_ids = [pid for pid, _ in sorted_prods]
 
-    return {
-        "hoy": {
-            "total_ventas": total_ventas,
-            "monto_total": float(monto_total),
-            "ticket_promedio": float(ticket_promedio),
-        },
-        "semana": semana,
-        "productos_bajo_stock": bajos,
-        "ultimas_ventas": ultimas,
-        "top_productos": top5,
-    }
+    if top_ids:
+        productos = (
+            from_table("productos")
+            .select("id,nombre")
+            .in_("id", top_ids)
+            .execute()
+        )
+        prod_map = {p["id"]: p["nombre"] for p in productos.data}
+    else:
+        prod_map = {}
+
+    top5 = [
+        TopProducto(
+            producto_id=pid,
+            nombre=prod_map.get(pid, f"#{pid}"),
+            total_vendido=total_vendido,
+        )
+        for pid, total_vendido in sorted_prods
+    ]
+
+    return DashboardResponse(
+        hoy=HoyStats(
+            total_ventas=total_ventas,
+            monto_total=float(monto_total),
+            ticket_promedio=float(ticket_promedio),
+        ),
+        semana=semana,
+        productos_bajo_stock=bajos,
+        ultimas_ventas=ultimas,
+        top_productos=top5,
+    )

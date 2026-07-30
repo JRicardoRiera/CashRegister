@@ -24,7 +24,7 @@ async function request(method, path, body = null) {
 }
 
 export const productosApi = {
-  list: (q) => request('GET', `/api/v1/productos${q ? `?q=${encodeURIComponent(q)}` : ''}`),
+  list: (q) => request('GET', `/api/v1/productos?per_page=100${q ? `&q=${encodeURIComponent(q)}` : ''}`),
   get: (id) => request('GET', `/api/v1/productos/${id}`),
   create: (data) => request('POST', '/api/v1/productos', data),
   update: (id, data) => request('PUT', `/api/v1/productos/${id}`, data),

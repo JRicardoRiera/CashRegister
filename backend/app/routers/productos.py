@@ -1,34 +1,56 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from math import ceil
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from typing import Optional
 from app.models.producto import (
     ProductoCreate,
     ProductoUpdate,
     ProductoResponse,
+    ProductosPaginados,
     AjusteStockRequest,
     MovimientoStockResponse,
 )
 from app.auth import get_current_profile, require_admin
-from app.services.supabase import from_table, handle_supabase_error
+from app.services.supabase import from_table, handle_supabase_error, get_producto_or_404
 
 router = APIRouter(prefix="/api/v1/productos", tags=["productos"])
 
 
-@router.get("", response_model=list[ProductoResponse])
+def _build_filters(query, q):
+    if not q:
+        return query
+    if q.isdigit() or len(q) >= 8:
+        return query.eq("codigo_barras", q)
+    return query.ilike("nombre", f"%{q}%")
+
+
+@router.get("", response_model=ProductosPaginados)
 def listar_productos(
     q: Optional[str] = None,
+    page: int = Query(1, ge=1),
+    per_page: int = Query(20, ge=1, le=100),
     profile=Depends(get_current_profile),
 ):
     try:
-        query = from_table("productos").select("*").eq("activo", True)
+        count_q = _build_filters(
+            from_table("productos").select("*", count="exact").eq("activo", True), q
+        )
+        count_resp = count_q.execute()
+        total = count_resp.count if hasattr(count_resp, 'count') and count_resp.count is not None else 0
 
-        if q:
-            if q.isdigit() or len(q) >= 8:
-                query = query.eq("codigo_barras", q)
-            else:
-                query = query.ilike("nombre", f"%{q}%")
+        start = (page - 1) * per_page
+        end = page * per_page - 1
+        data_q = _build_filters(
+            from_table("productos").select("*").eq("activo", True).order("nombre").range(start, end), q
+        )
+        items = data_q.execute().data
 
-        data = query.order("nombre").execute()
-        return data.data
+        total = total or (start + len(items))
+        total_pages = max(1, ceil(total / per_page))
+
+        return ProductosPaginados(
+            items=items, total=total, page=page,
+            per_page=per_page, total_pages=total_pages,
+        )
     except Exception as e:
         handle_supabase_error(e, "Error al listar productos")
 
@@ -38,13 +60,7 @@ def obtener_producto(
     producto_id: int,
     profile=Depends(get_current_profile),
 ):
-    try:
-        data = from_table("productos").select("*").eq("id", producto_id).single().execute()
-        return data.data
-    except Exception as e:
-        if "PGRST116" in str(e):
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Producto no encontrado")
-        handle_supabase_error(e, "Error al obtener producto")
+    return get_producto_or_404(producto_id)
 
 
 @router.post("", response_model=ProductoResponse, status_code=status.HTTP_201_CREATED)
@@ -73,13 +89,10 @@ def actualizar_producto(
     if not update_data:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No hay campos para actualizar")
 
-    try:
-        existing = from_table("productos").select("*").eq("id", producto_id).single().execute()
-    except Exception:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Producto no encontrado")
+    existing = get_producto_or_404(producto_id)
 
-    precio_compra = update_data.get("precio_compra") or existing.data["precio_compra"]
-    precio_venta = update_data.get("precio_venta") or existing.data["precio_venta"]
+    precio_compra = update_data.get("precio_compra") or existing["precio_compra"]
+    precio_venta = update_data.get("precio_venta") or existing["precio_venta"]
     if precio_venta < precio_compra:
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="precio_venta debe ser >= precio_compra")
 
@@ -102,11 +115,7 @@ def ajustar_stock(
     if body.tipo not in ("entrada", "salida", "ajuste"):
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Tipo inválido: entrada, salida o ajuste")
 
-    try:
-        prod = from_table("productos").select("*").eq("id", producto_id).single().execute().data
-    except Exception:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Producto no encontrado")
-
+    prod = get_producto_or_404(producto_id)
     stock_anterior = prod["stock_actual"]
 
     if body.tipo == "entrada":

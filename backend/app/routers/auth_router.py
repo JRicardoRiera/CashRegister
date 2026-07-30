@@ -1,35 +1,36 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from pydantic import BaseModel
 from app.auth import get_current_user, get_current_profile
-from app.services.supabase import get_client, from_table
+from app.services.supabase import get_client, from_table, hay_perfiles
+from app.models.auth_schemas import (
+    MeResponse,
+    PerfilResponse,
+    SignupRequest,
+    SignupResponse,
+    FixProfilesResponse,
+)
 
 router = APIRouter(prefix="/api/v1/auth", tags=["auth"])
 
 
-class SignupRequest(BaseModel):
-    email: str
-    password: str
-    nombre_completo: str
-
-
-class FixProfilesResponse(BaseModel):
-    creados: int
-    detalles: list[str]
-
-
-@router.get("/me")
+@router.get("/me", response_model=MeResponse)
 def read_current_user(
     user=Depends(get_current_user),
     profile=Depends(get_current_profile),
 ):
-    return {
-        "id": user.id,
-        "email": user.email,
-        "profile": profile,
-    }
+    return MeResponse(
+        id=user.id,
+        email=user.email,
+        profile=PerfilResponse(
+            id=profile["id"],
+            nombre_completo=profile["nombre_completo"],
+            email=profile["email"],
+            rol=profile["rol"],
+            creado_en=str(profile.get("creado_en", "")),
+        ),
+    )
 
 
-@router.post("/signup", status_code=status.HTTP_201_CREATED)
+@router.post("/signup", response_model=SignupResponse, status_code=status.HTTP_201_CREATED)
 def signup(body: SignupRequest):
     client = get_client()
 
@@ -54,7 +55,7 @@ def signup(body: SignupRequest):
     perfil_existente = perfil_resp.data if perfil_resp else None
 
     if not perfil_existente:
-        rol = "administrador" if user_id and _es_primer_usuario() else "cajero"
+        rol = "administrador" if not hay_perfiles() else "cajero"
         from_table("perfiles").insert({
             "id": user_id,
             "nombre_completo": body.nombre_completo,
@@ -62,7 +63,7 @@ def signup(body: SignupRequest):
             "rol": rol,
         }).execute()
 
-    return {"id": user_id, "email": body.email}
+    return SignupResponse(id=user_id, email=body.email)
 
 
 @router.post("/fix-profiles", response_model=FixProfilesResponse)
@@ -96,8 +97,3 @@ def fix_missing_profiles():
                 detalles.append(f"Error con {u.email}: {e}")
 
     return FixProfilesResponse(creados=creados, detalles=detalles)
-
-
-def _es_primer_usuario() -> bool:
-    resp = from_table("perfiles").select("id").limit(1).execute()
-    return len(resp.data) == 0

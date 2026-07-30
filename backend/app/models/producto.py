@@ -53,3 +53,11 @@ class ProductoResponse(ProductoBase):
     id: int
     creado_en: datetime
     actualizado_en: datetime
+
+
+class ProductosPaginados(BaseModel):
+    items: list[ProductoResponse]
+    total: int
+    page: int
+    per_page: int
+    total_pages: int

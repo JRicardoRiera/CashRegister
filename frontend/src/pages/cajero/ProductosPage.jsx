@@ -25,7 +25,7 @@ export default function ProductosPage() {
   const [catFilter, setCatFilter] = useState('')
 
   useEffect(() => {
-    productosApi.list(query).then(setProductos)
+    productosApi.list(query).then((data) => setProductos(data.items || data))
     categoriasApi.list().then(setCategorias)
   }, [query])
 

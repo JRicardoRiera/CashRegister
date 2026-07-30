@@ -8,7 +8,7 @@ function emptyForm() {
 function StockBadge({ actual, minimo }) {
   let color, bg
   if (actual === 0) {
-    color = '#ff6b6b'; bg = '#2d1515'; label = 'Agotado'
+    color = '#ff6b6b'; bg = '#2d1515'
   } else if (actual <= minimo) {
     color = '#e8a040'; bg = '#2d2a15'
   } else {
@@ -39,7 +39,7 @@ export default function ProductosPage() {
       productosApi.list(query),
       categoriasApi.list(),
     ]).then(([prods, cats]) => {
-      setProductos(prods)
+      setProductos(prods.items || prods)
       setCategorias(cats)
     }).catch((e) => setError(e.message))
   }
