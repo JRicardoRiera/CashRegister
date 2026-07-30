@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import useCartStore from '../store/cartStore'
 import { procesarVenta } from '../lib/api'
+import Ticket from './Ticket'
 
 const METODOS = [
   { id: 'efectivo', label: 'Efectivo', icon: 'cash' },
@@ -54,6 +55,7 @@ export default function CheckoutModal({ onClose }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [ventaResult, setVentaResult] = useState(null)
+  const [showTicket, setShowTicket] = useState(false)
 
   const cambio = Math.max(0, parseFloat(montoRecibido || 0) - total)
 
@@ -86,6 +88,10 @@ export default function CheckoutModal({ onClose }) {
     }
   }
 
+  if (showTicket && ventaResult) {
+    return <Ticket venta={ventaResult} onClose={() => setShowTicket(false)} />
+  }
+
   if (ventaResult) {
     return (
       <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
@@ -93,13 +99,15 @@ export default function CheckoutModal({ onClose }) {
           <CheckIcon />
           <h2 className="text-2xl font-bold text-[#b8f2b8] mt-4 mb-1 font-[family-name:var(--font-mono)]">Venta completada</h2>
           <p className="text-[#6b6460] text-sm mb-1">Folio <span className="font-[family-name:var(--font-mono)] text-[#e8e3dd]">#{ventaResult.id}</span></p>
-          <p className="text-3xl font-bold text-[#b8f2b8] mb-8 font-[family-name:var(--font-mono)] tabular-nums">
+          <p className="text-3xl font-bold text-[#b8f2b8] mb-6 font-[family-name:var(--font-mono)] tabular-nums">
             ${Number(ventaResult.total).toFixed(2)}
           </p>
-          <button
-            onClick={onClose}
-            className="w-full bg-[#b8f2b8] text-[#131212] py-3 rounded-lg font-bold hover:bg-[#a0e0a0] transition-colors"
-          >
+          <button onClick={() => setShowTicket(true)}
+            className="w-full bg-[#2a2726] text-[#e8e3dd] py-3 rounded-lg font-bold hover:bg-[#3a3634] transition-colors mb-2 text-sm">
+            Ver ticket
+          </button>
+          <button onClick={onClose}
+            className="w-full bg-[#b8f2b8] text-[#131212] py-3 rounded-lg font-bold hover:bg-[#a0e0a0] transition-colors">
             Nueva venta
           </button>
         </div>

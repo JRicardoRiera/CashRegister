@@ -1,6 +1,27 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { ventasApi } from '../../lib/adminApi'
 import Ticket from '../../components/Ticket'
+
+function today() {
+  const d = new Date()
+  return d.toISOString().slice(0, 10)
+}
+function weekAgo() {
+  const d = new Date()
+  d.setDate(d.getDate() - 7)
+  return d.toISOString().slice(0, 10)
+}
+function monthAgo() {
+  const d = new Date()
+  d.setMonth(d.getMonth() - 1)
+  return d.toISOString().slice(0, 10)
+}
+
+const RAPIDOS = [
+  { label: 'Hoy', desde: today, hasta: today },
+  { label: '7 días', desde: weekAgo, hasta: today },
+  { label: '30 días', desde: monthAgo, hasta: today },
+]
 
 export default function VentasPage() {
   const [ventas, setVentas] = useState([])
@@ -8,12 +29,23 @@ export default function VentasPage() {
   const [error, setError] = useState(null)
   const [ticketVenta, setTicketVenta] = useState(null)
   const [ticketLoading, setTicketLoading] = useState(false)
+  const [desde, setDesde] = useState('')
+  const [hasta, setHasta] = useState('')
 
-  function load() {
-    ventasApi.list().then(setVentas).catch((e) => setError(e.message))
+  const load = useCallback(() => {
+    ventasApi.list(desde || undefined, hasta || undefined).then(setVentas).catch((e) => setError(e.message))
+  }, [desde, hasta])
+
+  useEffect(load, [load])
+
+  function setRango(d, h) {
+    setDesde(d)
+    setHasta(h)
   }
 
-  useEffect(load, [])
+  function activo(d, h) {
+    return desde === d && hasta === h
+  }
 
   async function openTicket(id) {
     setTicketLoading(true)
@@ -29,8 +61,37 @@ export default function VentasPage() {
 
   return (
     <div>
-      <h2 className="text-lg font-bold text-[#e8e3dd] mb-1">Historial de Ventas</h2>
-      <p className="text-sm text-[#6b6460] mb-6">{ventas.length} registros</p>
+      <div className="flex items-center justify-between mb-3">
+        <h2 className="text-lg font-bold text-[#e8e3dd]">Historial de Ventas</h2>
+        <span className="text-sm text-[#6b6460] font-[family-name:var(--font-mono)]">{ventas.length} registros</span>
+      </div>
+
+      <div className="flex items-center gap-2 mb-4 flex-wrap">
+        {RAPIDOS.map((r) => (
+          <button key={r.label} onClick={() => setRango(r.desde(), r.hasta())}
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
+              activo(r.desde(), r.hasta()) ? 'border-[#b8f2b8] text-[#b8f2b8]' : 'border-[#2a2726] text-[#6b6460] hover:border-[#4a4644]'
+            }`}
+            style={activo(r.desde(), r.hasta()) ? { background: '#1f3a1f' } : {}}
+          >
+            {r.label}
+          </button>
+        ))}
+        <div className="flex items-center gap-2 ml-2">
+          <input type="date" value={desde} onChange={(e) => setRango(e.target.value, hasta)}
+            className="px-2 py-1.5 text-xs rounded-lg focus:outline-none"
+            style={{ background: '#0f0f0f', color: '#e8e3dd', border: '2px solid #2a2726' }} />
+          <span className="text-[#6b6460] text-xs">→</span>
+          <input type="date" value={hasta} onChange={(e) => setRango(desde, e.target.value)}
+            className="px-2 py-1.5 text-xs rounded-lg focus:outline-none"
+            style={{ background: '#0f0f0f', color: '#e8e3dd', border: '2px solid #2a2726' }} />
+        </div>
+        {(desde || hasta) && (
+          <button onClick={() => setRango('', '')} className="text-[#6b6460] hover:text-[#e8e3dd] text-xs ml-1">
+            Limpiar
+          </button>
+        )}
+      </div>
 
       {error && (
         <div className="text-sm px-4 py-3 rounded-lg mb-4 font-medium" style={{ background: '#2d1515', color: '#ff6b6b' }}>

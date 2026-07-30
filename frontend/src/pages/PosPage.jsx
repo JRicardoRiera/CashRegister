@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { signOut } from '../lib/auth'
 import ProductSearch from '../components/ProductSearch'
 import CartPanel from '../components/CartPanel'
@@ -21,9 +21,15 @@ export default function PosPage() {
           <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: '#b8f2b8', color: '#131212' }}>
             <span className="font-bold text-sm font-[family-name:var(--font-mono)]">CR</span>
           </div>
-          <h1 className="font-medium text-[#e8e3dd] text-sm hidden sm:block font-[family-name:var(--font-mono)] tracking-wide">
+          <h1 className="font-medium text-[#e8e3dd] text-sm hidden sm:block font-[family-name:var(--font-mono)] tracking-wide mr-4">
             CashRegister POS
           </h1>
+          <Link to="/cajero/productos" className="text-xs text-[#6b6460] hover:text-[#e8e3dd] font-semibold px-2.5 py-1.5 rounded-lg hover:bg-[#2a2726] transition-colors">
+            Inventario
+          </Link>
+          <Link to="/cajero/mis-ventas" className="text-xs text-[#6b6460] hover:text-[#e8e3dd] font-semibold px-2.5 py-1.5 rounded-lg hover:bg-[#2a2726] transition-colors">
+            Mis Ventas
+          </Link>
         </div>
         <button
           onClick={handleLogout}

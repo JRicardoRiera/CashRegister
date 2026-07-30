@@ -85,7 +85,6 @@ def listar_ventas(
     desde: Optional[str] = None,
     hasta: Optional[str] = None,
     profile=Depends(get_current_profile),
-    admin=Depends(require_admin),
 ):
     try:
         query = from_table("ventas").select("*")
@@ -111,10 +110,14 @@ def listar_ventas(
 def obtener_venta(
     venta_id: int,
     profile=Depends(get_current_profile),
-    admin=Depends(require_admin),
 ):
     try:
+        venta = from_table("ventas").select("*").eq("id", venta_id).single().execute().data
+        if profile["rol"] != "administrador" and venta["usuario_id"] != profile["id"]:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="No tienes acceso a esta venta")
         return get_venta_completa(venta_id)
+    except HTTPException:
+        raise
     except Exception as e:
         handle_supabase_error(e, "Error al obtener venta")
 

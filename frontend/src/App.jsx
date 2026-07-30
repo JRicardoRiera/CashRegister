@@ -3,6 +3,8 @@ import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
 import PosPage from './pages/PosPage'
 import AdminPage from './pages/AdminPage'
+import CajeroProductos from './pages/cajero/ProductosPage'
+import CajeroMisVentas from './pages/cajero/MisVentasPage'
 import ProtectedRoute from './components/ProtectedRoute'
 import AdminRoute from './components/AdminRoute'
 
@@ -17,6 +19,22 @@ export default function App() {
           element={
             <ProtectedRoute>
               <PosPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/cajero/productos"
+          element={
+            <ProtectedRoute>
+              <CajeroProductos />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/cajero/mis-ventas"
+          element={
+            <ProtectedRoute>
+              <CajeroMisVentas />
             </ProtectedRoute>
           }
         />
