@@ -1,26 +1,58 @@
+/* ============================================================================
+   index.css - Estilos globales de la aplicación (Tailwind CSS v4)
+   ----------------------------------------------------------------------------
+   En este proyecto usamos Tailwind CSS v4, que cambia la forma de trabajo
+   frente a versiones anteriores:
+     - No necesita archivo de configuración (tailwind.config.js).
+     - La directiva @import "tailwindcss" ya carga todo el framework.
+     - Los colores y fuentes personalizadas se definen con la directiva
+       @theme (se convierten en utilidades como bg-store-accent).
+     - Las utilidades personalizadas se crean con @utility.
+   Este archivo además contiene animaciones y las reglas de impresión del
+   ticket, que no se pueden hacer solo con clases de Tailwind.
+   ============================================================================ */
+
+/* Importa todo el framework de Tailwind (normalización, utilidades, etc.) */
 @import "tailwindcss";
 
+/* ----------------------------------------------------------------------------
+   @theme - Tema personalizado
+   Aquí definimos las variables de diseño. Cada --color-* genera utilidades
+   de color (bg-*, text-*, border-*) y cada --font-* genera utilidades de
+   tipografía (font-sans, font-mono).
+   ---------------------------------------------------------------------------- */
 @theme {
+  /* Tipografía: Inter para texto general y JetBrains Mono para código */
   --font-sans: "Inter", system-ui, -apple-system, sans-serif;
   --font-mono: "JetBrains Mono", "Cascadia Code", "Consolas", monospace;
 
-  --color-store-bg: #f7f5f0;
-  --color-store-card: #ffffff;
-  --color-store-text: #1c1a18;
-  --color-store-accent: #c73e3e;
-  --color-store-muted: #9c928a;
+  /* Paleta del punto de venta (POS): tonos cálidos tipo tienda */
+  --color-store-bg: #f7f5f0;        /* Fondo claro de las pantallas del cajero */
+  --color-store-card: #ffffff;      /* Fondo de las tarjetas */
+  --color-store-text: #1c1a18;      /* Texto principal (casi negro) */
+  --color-store-accent: #c73e3e;    /* Color de acento (rojo) para botones */
+  --color-store-muted: #9c928a;     /* Texto o bordes atenuados */
 
-  --color-register-bg: #131212;
-  --color-register-surface: #1f1d1c;
-  --color-register-text: #e8e3dd;
-  --color-register-muted: #6b6460;
-  --color-register-green: #b8f2b8;
-  --color-register-green-dim: #1f3a1f;
+  /* Paleta oscura de la pantalla de registro/administración */
+  --color-register-bg: #131212;        /* Fondo general oscuro */
+  --color-register-surface: #1f1d1c;   /* Superficie de las tarjetas */
+  --color-register-text: #e8e3dd;      /* Texto claro */
+  --color-register-muted: #6b6460;     /* Texto atenuado */
+  --color-register-green: #b8f2b8;     /* Verde de acento */
+  --color-register-green-dim: #1f3a1f; /* Verde oscuro para fondos suaves */
 
-  --color-accent-blue: #3c78d2;
-  --color-danger: #d64545;
+  /* Colores auxiliares de uso general */
+  --color-accent-blue: #3c78d2;  /* Azul para enlaces/acciones */
+  --color-danger: #d64545;       /* Rojo para errores o acciones destructivas */
 }
 
+/* ----------------------------------------------------------------------------
+   @utility scrollbar-thin
+   Utilidad personalizada: barra de desplazamiento fina y redondeada.
+   Tailwind v4 permite encapsular reglas CSS complejas en utilidades que se
+   aplican como clase: class="scrollbar-thin".
+   El selector &::-webkit-scrollbar apunta al propio elemento con la clase.
+   ---------------------------------------------------------------------------- */
 @utility scrollbar-thin {
   &::-webkit-scrollbar {
     width: 4px;
@@ -34,6 +66,11 @@
   }
 }
 
+/* ----------------------------------------------------------------------------
+   @utility register-scroll
+   Igual que scrollbar-thin pero con los colores del tema oscuro de registro.
+   Se usa en las pantallas oscuras para mantener la coherencia visual.
+   ---------------------------------------------------------------------------- */
 @utility register-scroll {
   &::-webkit-scrollbar {
     width: 4px;
@@ -47,17 +84,31 @@
   }
 }
 
+/* ----------------------------------------------------------------------------
+   Animaciones definidas con @keyframes.
+   Las animaciones personalizadas se declaran en CSS plano; luego se pueden
+   referenciar con la utilidad animate-[nombre] de Tailwind.
+   ---------------------------------------------------------------------------- */
+
+/* register-pulse: pulso suave (opacidad) usado en indicadores de estado. */
 @keyframes register-pulse {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.85; }
 }
 
+/* scan-flash: efecto de "destello" tipo lector de códigos de barras.
+   Se usa al detectar un escaneo para dar feedback visual al cajero. */
 @keyframes scan-flash {
   0% { transform: scale(0.5); opacity: 0; }
   50% { transform: scale(1.2); opacity: 1; }
   100% { transform: scale(1); opacity: 1; }
 }
 
+/* ----------------------------------------------------------------------------
+   @utility register-display
+   Estilo de "pantalla" retro para inputs o lecturas (fondo negro con sombra
+   interior). Refuerza la estética de terminal de las pantallas oscuras.
+   ---------------------------------------------------------------------------- */
 @utility register-display {
   background: #0a0a0a;
   border-radius: 0.5rem;
@@ -65,21 +116,33 @@
   box-shadow: inset 0 2px 4px rgba(0,0,0,0.6);
 }
 
+/* ----------------------------------------------------------------------------
+   @media print - Reglas de impresión del ticket
+   Cuando el usuario imprime (Ctrl+P o botón de imprimir) queremos que solo
+   salga el ticket, no toda la interfaz. Para ello:
+     1. Ocultamos TODO el contenido de la página (visibility: hidden).
+     2. Hacemos visible solo el bloque con clase .ticket-content.
+     3. Lo posicionamos en la esquina y con el ancho estándar de un ticket
+        de 80mm, reduciendo el tamaño de letra para que quepa.
+   ---------------------------------------------------------------------------- */
 @media print {
+  /* Oculta todos los elementos de la página */
   body * {
     visibility: hidden;
   }
+  /* Solo el ticket y sus hijos permanecen visibles */
   .ticket-content,
   .ticket-content * {
     visibility: visible;
   }
   .ticket-content {
+    /* Lo sacamos del flujo normal para colocarlo arriba a la izquierda */
     position: absolute;
     left: 0;
     top: 0;
-    width: 80mm;
+    width: 80mm;          /* Ancho típico de impresoras de tickets */
     padding: 0;
     margin: 0;
-    font-size: 10px;
+    font-size: 10px;      /* Letra pequeña para que quepa en el ancho */
   }
 }

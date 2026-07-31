@@ -1,22 +1,45 @@
+// ============================================================================
+// VentasPage.jsx (admin) - Historial completo de ventas
+// ----------------------------------------------------------------------------
+// Lista todas las ventas del negocio con filtros por rango de fechas:
+// botones rápidos (Hoy, 7 días, 30 días) o selección manual de "desde/hasta".
+// Cada fila permite abrir el ticket imprimible o desplegar el detalle.
+// Es muy parecida a MisVentasPage del cajero, pero sin límite de usuario.
+// ============================================================================
+
 import { useState, useEffect, useCallback } from 'react'
+// API de ventas.
 import { ventasApi } from '../../lib/adminApi'
+// Componente del ticket imprimible.
 import Ticket from '../../components/Ticket'
 
+// ---------------------------------------------------------------------------
+// Funciones auxiliares de fechas. Devuelven "AAAA-MM-DD" en formato UTC
+// (el mismo que espera el backend en los parámetros desde/hasta).
+// ---------------------------------------------------------------------------
+
+// Fecha de hoy.
 function today() {
   const d = new Date()
   return d.toISOString().slice(0, 10)
 }
+
+// Fecha de hace 7 días.
 function weekAgo() {
   const d = new Date()
   d.setDate(d.getDate() - 7)
   return d.toISOString().slice(0, 10)
 }
+
+// Fecha de hace 30 días.
 function monthAgo() {
   const d = new Date()
   d.setMonth(d.getMonth() - 1)
   return d.toISOString().slice(0, 10)
 }
 
+// Botones rápidos de rango. "desde" y "hasta" son funciones que se llaman
+// al pulsar el botón para calcular la fecha en ese momento.
 const RAPIDOS = [
   { label: 'Hoy', desde: today, hasta: today },
   { label: '7 días', desde: weekAgo, hasta: today },
@@ -24,29 +47,49 @@ const RAPIDOS = [
 ]
 
 export default function VentasPage() {
+  // Lista de ventas cargadas.
   const [ventas, setVentas] = useState([])
+  // Venta seleccionada para mostrar el detalle expandido.
   const [selected, setSelected] = useState(null)
+  // Mensaje de error.
   const [error, setError] = useState(null)
+  // Venta cargada para el ticket imprimible.
   const [ticketVenta, setTicketVenta] = useState(null)
+  // Indica si se está descargando un ticket.
   const [ticketLoading, setTicketLoading] = useState(false)
+  // Filtro de fechas.
   const [desde, setDesde] = useState('')
   const [hasta, setHasta] = useState('')
 
+  // -------------------------------------------------------------------------
+  // load()
+  // Pide las ventas al backend con los filtros de fecha. useCallback evita
+  // que la función cambie de referencia salvo que cambien desde/hasta.
+  // Se pasa undefined cuando el campo está vacío para que la API no envíe
+  // un parámetro vacío.
+  // -------------------------------------------------------------------------
   const load = useCallback(() => {
     ventasApi.list(desde || undefined, hasta || undefined).then(setVentas).catch((e) => setError(e.message))
   }, [desde, hasta])
 
+  // Recargamos cada vez que cambia load (es decir, desde o hasta).
   useEffect(load, [load])
 
+  // Establece el rango de fechas.
   function setRango(d, h) {
     setDesde(d)
     setHasta(h)
   }
 
+  // ¿Coincide el rango actual con un rango concreto? (para resaltar el botón)
   function activo(d, h) {
     return desde === d && hasta === h
   }
 
+  // -------------------------------------------------------------------------
+  // openTicket(id)
+  // Descarga el detalle completo de una venta y abre el ticket.
+  // -------------------------------------------------------------------------
   async function openTicket(id) {
     setTicketLoading(true)
     try {
@@ -61,12 +104,15 @@ export default function VentasPage() {
 
   return (
     <div>
+      {/* Cabecera con el número de registros */}
       <div className="flex items-center justify-between mb-3">
         <h2 className="text-lg font-bold text-[#e8e3dd]">Historial de Ventas</h2>
         <span className="text-sm text-[#6b6460] font-[family-name:var(--font-mono)]">{ventas.length} registros</span>
       </div>
 
+      {/* Filtros de fechas */}
       <div className="flex items-center gap-2 mb-4 flex-wrap">
+        {/* Botones rápidos */}
         {RAPIDOS.map((r) => (
           <button key={r.label} onClick={() => setRango(r.desde(), r.hasta())}
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
@@ -77,6 +123,7 @@ export default function VentasPage() {
             {r.label}
           </button>
         ))}
+        {/* Rango manual con dos inputs de fecha */}
         <div className="flex items-center gap-2 ml-2">
           <input type="date" value={desde} onChange={(e) => setRango(e.target.value, hasta)}
             className="px-2 py-1.5 text-xs rounded-lg focus:outline-none"
@@ -86,6 +133,7 @@ export default function VentasPage() {
             className="px-2 py-1.5 text-xs rounded-lg focus:outline-none"
             style={{ background: '#0f0f0f', color: '#e8e3dd', border: '2px solid #2a2726' }} />
         </div>
+        {/* Botón para limpiar el filtro (solo si hay alguno activo) */}
         {(desde || hasta) && (
           <button onClick={() => setRango('', '')} className="text-[#6b6460] hover:text-[#e8e3dd] text-xs ml-1">
             Limpiar
@@ -93,12 +141,14 @@ export default function VentasPage() {
         )}
       </div>
 
+      {/* Mensaje de error */}
       {error && (
         <div className="text-sm px-4 py-3 rounded-lg mb-4 font-medium" style={{ background: '#2d1515', color: '#ff6b6b' }}>
           {error}
         </div>
       )}
 
+      {/* Tabla de ventas */}
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
@@ -115,10 +165,15 @@ export default function VentasPage() {
             {ventas.map((v) => (
               <tr key={v.id} className="border-b border-[#2a2726] hover:bg-[#1a1817] text-[#e8e3dd]">
                 <td className="py-2 font-[family-name:var(--font-mono)] text-xs">#{v.id}</td>
+                {/* Fecha formateada para México */}
                 <td className="py-2 text-xs">{new Date(v.fecha_hora).toLocaleString('es-MX')}</td>
+                {/* Cajero que realizó la venta */}
                 <td className="py-2 text-sm">{v.usuario_nombre}</td>
+                {/* Total en verde */}
                 <td className="py-2 text-right font-[family-name:var(--font-mono)] font-semibold text-[#b8f2b8]">${Number(v.total).toFixed(2)}</td>
+                {/* Método de pago como etiqueta */}
                 <td className="py-2"><span className="capitalize text-xs px-2 py-0.5 rounded-full" style={{ background: '#1f3a1f', color: '#b8f2b8' }}>{v.metodo_pago}</span></td>
+                {/* Acciones: ticket y detalle expandible */}
                 <td className="py-2 text-right whitespace-nowrap">
                   <button onClick={() => openTicket(v.id)} className="text-[#e8a040] hover:text-[#f0b850] mr-2 text-xs">Ticket</button>
                   <button onClick={() => setSelected(selected?.id === v.id ? null : v)} className="text-[#6b6460] hover:text-[#e8e3dd] text-xs">
@@ -127,6 +182,7 @@ export default function VentasPage() {
                 </td>
               </tr>
             ))}
+            {/* Mensaje si no hay ventas en el rango */}
             {ventas.length === 0 && (
               <tr><td colSpan="6" className="text-center py-8 text-[#6b6460] text-sm">Sin ventas registradas</td></tr>
             )}
@@ -134,6 +190,7 @@ export default function VentasPage() {
         </table>
       </div>
 
+      {/* Detalle expandido de la venta seleccionada */}
       {selected && (
         <div className="mt-4 p-4 rounded-lg" style={{ background: '#1a1817' }}>
           <h3 className="text-sm font-bold text-[#e8e3dd] mb-3">Detalle #{selected.id}</h3>
@@ -157,6 +214,7 @@ export default function VentasPage() {
               ))}
             </tbody>
           </table>
+          {/* Resumen económico */}
           <div className="border-t border-[#2a2726] mt-2 pt-2 text-xs text-[#6b6460] space-y-0.5">
             <div className="flex justify-between"><span>Subtotal</span><span className="font-[family-name:var(--font-mono)]">${Number(selected.subtotal).toFixed(2)}</span></div>
             <div className="flex justify-between"><span>IVA (15%)</span><span className="font-[family-name:var(--font-mono)]">${Number(selected.impuestos).toFixed(2)}</span></div>
@@ -165,12 +223,14 @@ export default function VentasPage() {
         </div>
       )}
 
+      {/* Spinner de carga del ticket */}
       {ticketLoading && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 backdrop-blur-sm">
           <div className="w-5 h-5 border-2 border-[#b8f2b8] border-t-transparent rounded-full animate-spin" />
         </div>
       )}
 
+      {/* Ticket imprimible cuando se carga una venta */}
       {ticketVenta && <Ticket venta={ticketVenta} onClose={() => setTicketVenta(null)} />}
     </div>
   )
